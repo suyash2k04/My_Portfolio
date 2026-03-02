@@ -29,16 +29,16 @@ export default function WelcomeIntro() {
         >
           <motion.h1
             initial={{ opacity: 0, scale: 0.4, rotateX: 90 }}
-            animate={{ opacity: 1, scale: 1.5, rotateX: 0 }}
+            animate={{ opacity: 1, scale: 1.1, rotateX: 0 }}
             transition={{
               duration: 1.4,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="relative text-white text-6xl md:text-9xl font-extrabold tracking-[0.35em]"
+            className="relative text-white text-6xl md:text-9xl font-extrabold
+             tracking-[0.15em] sm:tracking-[0.25em] md:tracking-[0.35em]
+             text-center leading-none whitespace-nowrap md:scale-150"
           >
             WELCOME
-
-            {/* Subtle RGB Glitch Layers */}
             <span className="absolute inset-0 text-red-500 opacity-40 translate-x-1">
               WELCOME
             </span>

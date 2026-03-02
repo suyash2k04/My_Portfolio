@@ -1,7 +1,14 @@
 "use client";
+
 import React, { JSX, useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  MotionValue,
+  useReducedMotion,
+} from "framer-motion";
 import { OrbitControls, useTexture } from "@react-three/drei";
 
 import {
@@ -23,7 +30,6 @@ type Project = {
   description: string;
   stack: { name: string; icon: JSX.Element; color: string }[];
   image: string;
-  live?: string;
 };
 
 /* ================= DATA ================= */
@@ -61,13 +67,12 @@ const PROJECTS: Project[] = [
     title: "FinTrack Pro",
     category: "FINTECH PLATFORM",
     description:
-      "A smart financial intelligence application tracking expenses, generating deep analytics, and providing predictive insights for better money management decisions.",
+      "A smart financial intelligence application tracking expenses, generating analytics, and predictive insights.",
     stack: [
       { name: "Next.js", icon: <SiNextdotjs />, color: "#ffffff" },
       { name: "TypeScript", icon: <SiTypescript />, color: "#3178C6" },
       { name: "PostgreSQL", icon: <SiPostgresql />, color: "#336791" },
       { name: "React", icon: <SiReact />, color: "#61DAFB" },
-      { name: "Chart.js", icon: <SiReact />, color: "#61DAFB" },
     ],
     image: "/projects/image3.png",
   },
@@ -77,27 +82,102 @@ const PROJECTS: Project[] = [
 
 export default function Projects() {
   return (
-    <section className="bg-black text-white">
-      {PROJECTS.map((project, i) => (
-        <ProjectPanel key={i} project={project} />
-      ))}
+    <section className="bg-black text-white" id="projects">
+      {/* MOBILE PROJECTS HEADER */}
+<motion.div
+  initial={{ opacity: 0, y: 24 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.6 }}
+  className="mb-16 text-center"
+>
+  <p className="text-xs tracking-[0.45em] text-white/40 mb-4">
+    FEATURED PROJECTS
+  </p>
+
+  <h2 className="text-3xl font-bold tracking-tight mb-4">
+    Selected Work
+  </h2>
+
+  <p className="text-sm text-white/60 max-w-xs mx-auto leading-relaxed">
+    Production-ready platforms crafted with performance, scale, and design in mind.
+  </p>
+
+  {/* Divider */}
+  <div className="mt-8 mx-auto h-px w-16 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+</motion.div>
+      {/* MOBILE VIEW */}
+      <div className="md:hidden px-6 py-24 space-y-16">
+        {PROJECTS.map((project, i) => (
+          <MobileCard key={i} project={project} />
+        ))}
+      </div>
+
+      {/* DESKTOP VIEW */}
+      <div className="hidden md:block">
+        {PROJECTS.map((project, i) => (
+          <DesktopPanel key={i} project={project} />
+        ))}
+      </div>
     </section>
   );
 }
 
-/* ================= PANEL ================= */
+/* ================= MOBILE CARD ================= */
 
-function ProjectPanel({ project }: { project: Project }) {
+function MobileCard({ project }: { project: Project }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl p-6"
+    >
+      <p className="text-xs tracking-widest text-white/50 mb-2">
+        {project.category}
+      </p>
+
+      <h3 className="text-2xl font-semibold mb-4">
+        {project.title}
+      </h3>
+
+      <p className="text-sm text-white/80 mb-6">
+        {project.description}
+      </p>
+
+      <div className="flex gap-4 flex-wrap mb-6">
+        {project.stack.map((tech) => (
+          <span key={tech.name}>
+            {React.cloneElement(tech.icon, {
+              color: tech.color,
+              size: 26,
+            })}
+          </span>
+        ))}
+      </div>
+
+      <button className="w-full py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold">
+        View Project →
+      </button>
+    </motion.div>
+  );
+}
+
+/* ================= DESKTOP PANEL ================= */
+
+function DesktopPanel({ project }: { project: Project }) {
   const ref = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
-  const contentY = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [120, -120]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.2]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.25]);
 
   return (
     <section
@@ -107,27 +187,28 @@ function ProjectPanel({ project }: { project: Project }) {
       {/* BACKGROUND IMAGE */}
       <motion.img
         src={project.image}
-        alt={project.title}
+        alt=""
         className="absolute inset-0 w-full h-full object-cover"
         style={{ scale: bgScale }}
       />
 
-      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       {/* 3D BACKGROUND */}
-      <div className="absolute inset-0 opacity-40">
-        <Canvas>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[5, 5, 5]} intensity={1} />
-          <Suspense fallback={null}>
-            <LayeredPlane image={project.image} scroll={scrollYProgress} />
-          </Suspense>
-          <OrbitControls enableZoom={false} enablePan={false} />
-        </Canvas>
-      </div>
+      {!reduceMotion && (
+        <div className="absolute inset-0 opacity-40">
+          <Canvas>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[5, 5, 5]} intensity={1} />
+            <Suspense fallback={null}>
+              <LayeredPlane image={project.image} scroll={scrollYProgress} />
+            </Suspense>
+            <OrbitControls enableZoom={false} enablePan={false} />
+          </Canvas>
+        </div>
+      )}
 
-      {/* GLASS CONTENT CARD */}
+      {/* CONTENT */}
       <motion.div
         style={{ y: contentY, opacity }}
         className="relative z-20 w-[85%] max-w-6xl backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-16 shadow-2xl"
@@ -136,21 +217,19 @@ function ProjectPanel({ project }: { project: Project }) {
           {project.category}
         </p>
 
-        <h2 className="text-7xl font-bold mb-8 leading-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+        <h2 className="text-7xl font-bold mb-8 leading-tight">
           {project.title}
         </h2>
 
-        <p className="text-white/80 text-xl leading-relaxed max-w-3xl mb-12">
+        <p className="text-xl text-white/80 max-w-3xl mb-12">
           {project.description}
         </p>
 
-        {/* TECH STACK */}
-        <div className="flex flex-wrap gap-6 mb-12">
+        <div className="flex gap-6 mb-12">
           {project.stack.map((tech) => (
             <motion.div
               key={tech.name}
               whileHover={{ scale: 1.25, rotate: 6 }}
-              className="cursor-pointer"
             >
               {React.cloneElement(tech.icon, {
                 color: tech.color,
@@ -160,14 +239,9 @@ function ProjectPanel({ project }: { project: Project }) {
           ))}
         </div>
 
-        {/* BUTTON */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="px-10 py-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold tracking-widest shadow-lg hover:shadow-2xl transition"
-        >
+        <button className="px-10 py-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold tracking-widest">
           View Project →
-        </motion.button>
+        </button>
       </motion.div>
     </section>
   );

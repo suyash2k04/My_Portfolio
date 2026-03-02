@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useMotionValueEvent,
-  useMotionValue,
-  useSpring,
-} from "framer-motion";
-import { useRef, useState } from "react";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import {
   SiReact,
   SiNextdotjs,
@@ -38,10 +30,6 @@ import {
   SiTensorflow,
   SiPytorch,
 } from "react-icons/si";
-
-/* ============================= */
-/* ===== ENTERPRISE MATRIX ===== */
-/* ============================= */
 
 const EXPERTISE = [
   {
@@ -85,7 +73,7 @@ const EXPERTISE = [
     stack: [
       { name: "Grafana", icon: SiGrafana, color: "#F46800" },
       { name: "Prometheus", icon: SiPrometheus, color: "#E6522C" },
-      { name: "Blue-Green Deployment", icon: SiDocker, color: "#2496ED" },
+      { name: "Blue-Green Deployments", icon: SiDocker, color: "#2496ED" },
       { name: "Canary Releases", icon: SiKubernetes, color: "#326CE5" },
     ],
   },
@@ -101,154 +89,121 @@ const EXPERTISE = [
   },
 ];
 
-/* ============================= */
-/* ===== MAGNETIC COMPONENT ==== */
-/* ============================= */
-
-function Magnetic({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const smoothX = useSpring(x, { stiffness: 200, damping: 20 });
-  const smoothY = useSpring(y, { stiffness: 200, damping: 20 });
-
-  const handleMove = (e: any) => {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
-
-    x.set(dx * 0.3);
-    y.set(dy * 0.3);
-  };
-
-  const reset = () => {
-    x.set(0);
-    y.set(0);
-  };
+export default function Skills() {
+  const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <motion.div
-      ref={ref}
-      style={{ x: smoothX, y: smoothY }}
-      onMouseMove={handleMove}
-      onMouseLeave={reset}
-      whileHover={{ scale: 1.1 }}
-      className="transition"
-    >
-      {children}
-    </motion.div>
-  );
-}
+    <section className="bg-black text-white py-24 md:py-40" id="skills">
+      <div className="max-w-7xl mx-auto px-6 md:px-8">
 
-/* ============================= */
-/* ===== MAIN SECTION ========== */
-/* ============================= */
-
-export default function ExpertisePage() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
-
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const index = Math.min(
-      EXPERTISE.length - 1,
-      Math.floor(v * EXPERTISE.length)
-    );
-    setActive(index);
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
-
-  return (
-    <motion.section
-      ref={ref}
-
-      className="relative bg-black text-white min-h-screen overflow-hidden"
-    >
-      {/* Background Grid */}
-      <div
-        className="absolute inset-0 opacity-[0.03]
-        bg-[linear-gradient(to_right,white_1px,transparent_1px),
-            linear-gradient(to_bottom,white_1px,transparent_1px)]
-        bg-size-[100px_100px]"
-      />
-
-      {/* Massive Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <h1 className="text-[18vw] font-bold tracking-tight text-white/5">
-          EXPERTISE
-        </h1>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-8 py-40">
         {/* Header */}
-        <div className="mb-32">
-          <h2 className="text-6xl font-semibold tracking-tight">
-            ENGINEERING EXPERTISE
+        <div className="mb-16 md:mb-32">
+          <h2 className="text-3xl md:text-6xl font-semibold tracking-tight">
+            Engineering Expertise
           </h2>
-          <p className="mt-6 text-gray-400 max-w-2xl">
-            Full-Stack Systems • Distributed Architecture • Cloud Infrastructure • AI Engineering
+          <p className="mt-4 md:mt-6 text-gray-400 max-w-2xl">
+            Full-Stack Systems • Cloud • Distributed Architecture • AI
           </p>
-          <div className="mt-10 h-px w-40 bg-white/30" />
+          <div className="mt-8 h-px w-32 bg-white/30" />
         </div>
 
-        {/* Domains */}
-        <div className="space-y-32">
+        {/* MOBILE — ACCORDION */}
+        <div className="space-y-6 md:hidden">
+          {EXPERTISE.map((domain, i) => (
+            <div
+              key={i}
+              className="border border-white/10 rounded-xl overflow-hidden"
+            >
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full px-6 py-4 flex justify-between items-center"
+              >
+                <span className="text-base font-medium text-left">
+                  {domain.title}
+                </span>
+                <span className="text-gray-400">
+                  {open === i ? "−" : "+"}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {open === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35 }}
+                    className="px-6 pb-6"
+                  >
+                    <div className="grid grid-cols-2 gap-6">
+                      {domain.stack.map((skill, idx) => {
+                        const Icon = skill.icon;
+                        return (
+                          <div
+                            key={idx}
+                            className="flex flex-col items-center text-center"
+                          >
+                            <Icon size={34} style={{ color: skill.color }} />
+                            <span className="mt-2 text-xs text-gray-400">
+                              {skill.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+
+        {/* DESKTOP — GRID */}
+        <div className="hidden md:block space-y-32">
           {EXPERTISE.map((domain, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 80 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className={`border px-16 py-20 rounded-3xl transition-all duration-500 ${
-                active === i
-                  ? "border-white bg-white/5"
-                  : "border-white/10"
-              }`}
+              viewport={{ once: true }}
+              className="border border-white/10 rounded-3xl px-16 py-20 bg-white/5"
             >
               <div className="flex justify-between items-center mb-16">
-                <h3 className="text-3xl tracking-tight">
-                  {domain.title}
-                </h3>
-                <span className="text-sm text-gray-500 tracking-widest">
+                <h3 className="text-3xl">{domain.title}</h3>
+                <span className="text-gray-500">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14">
+              <div className="grid grid-cols-4 gap-14">
                 {domain.stack.map((skill, idx) => {
                   const Icon = skill.icon;
                   return (
-                    <Magnetic key={idx}>
-                      <div className="flex flex-col items-center space-y-4 cursor-pointer group">
-                        <Icon
-                          size={48}
-                          style={{
-                            color: skill.color,
-                            filter: `drop-shadow(0 0 10px ${skill.color}88)`,
-                          }}
-                          className="transition duration-300 group-hover:scale-110"
-                        />
-                        <span className="text-sm text-gray-400 group-hover:text-white transition">
-                          {skill.name}
-                        </span>
-                      </div>
-                    </Magnetic>
+                    <div
+                      key={idx}
+                      className="flex flex-col items-center group"
+                    >
+                      <Icon
+                        size={48}
+                        style={{
+                          color: skill.color,
+                          filter: `drop-shadow(0 0 10px ${skill.color}66)`,
+                        }}
+                        className="group-hover:scale-110 transition"
+                      />
+                      <span className="mt-4 text-gray-400 group-hover:text-white transition">
+                        {skill.name}
+                      </span>
+                    </div>
                   );
                 })}
               </div>
             </motion.div>
           ))}
         </div>
+
       </div>
-    </motion.section>
+    </section>
   );
 }
